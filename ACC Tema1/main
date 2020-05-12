@@ -1,0 +1,109 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import timeit
+
+
+def bubble_sort(array):
+    seconds = timeit.default_timer()
+    temp_array = np.copy(array)
+    for i in range(len(temp_array)):
+        for j in range(len(temp_array) - i - 1):
+            if temp_array[j] > temp_array[j + 1]:
+                temp_array[j], temp_array[j + 1] = temp_array[j + 1], temp_array[j]
+    seconds = timeit.default_timer() - seconds
+
+    return seconds
+
+
+def quick_sort(array):
+    seconds = timeit.default_timer()
+    temp_array = np.copy(array)
+    temp_array = np.sort(temp_array, kind='quicksort')
+    seconds = timeit.default_timer() - seconds
+
+    return seconds
+
+
+def merge_sort(array):
+    seconds = timeit.default_timer()
+    temp_array = np.copy(array)
+    temp_array = np.sort(temp_array, kind='mergesort')
+    seconds = timeit.default_timer() - seconds
+
+    return seconds
+
+
+def compare_and_swap(array, i, j, direction):
+    if (direction == 1 and array[i] > array[j]) or (direction == 0 and array[i] < array[j]):
+        array[i], array[j] = array[j], array[i]
+
+
+def bitonic_merge(array, begin, array_lenght, direction):
+    if array_lenght > 1:
+        k = int(array_lenght / 2)
+        for i in range(begin, begin + k):
+            compare_and_swap(array, i, i + k, direction)
+        bitonic_merge(array, begin, k, direction)
+        bitonic_merge(array, begin + k, k, direction)
+
+
+def bitonic_sort(array, begin, array_lenght, direction):
+    if array_lenght > 1:
+        k = int(array_lenght / 2)
+        bitonic_sort(array, begin, k, 1)
+        bitonic_sort(array, begin + k, k, 0)
+        bitonic_merge(array, begin, array_lenght, direction)
+
+
+def sort(array):
+    seconds = timeit.default_timer()
+    temp_array = np.copy(array)
+    bitonic_sort(temp_array, 0, temp_array.size, 1)
+    seconds = timeit.default_timer() - seconds
+
+    return seconds
+
+
+def linear_sort(array):
+    seconds = timeit.default_timer()
+    temp_array = np.copy(array)
+    max_element = np.amax(temp_array)
+    freq = np.zeros(max_element + 1)
+
+    step = 0
+    for i in range(len(temp_array)):
+        freq[temp_array[i]] += 1
+    sorted_array = np.zeros(temp_array.size, dtype=int)
+    for i in range(len(freq)):
+        if freq[i] != 0:
+            sorted_array[int(step):int(step + freq[i])] = i
+            step += freq[i]
+
+    return seconds
+
+elements=list()
+times_bubble=list()
+times_quick=list()
+times_merge=list()
+times_bitonic=list()
+times_linear=list()
+
+for i in range(3):
+    array=np.random.randint(0,100,size=(i+1)*4086)
+    elements.append(array.size)
+    times_bubble.append(bubble_sort(array))
+    times_quick.append(quick_sort(array))
+    times_merge.append(merge_sort(array))
+    times_bitonic.append(sort(array))
+    times_linear.append(linear_sort(array))
+
+plt.xlabel("Number of elements")
+plt.ylabel("Time in seconds")
+plt.plot(elements,times_bubble,label="Bubble Sort")
+plt.plot(elements,times_quick,"red",label="Quick Sort")
+plt.plot(elements,times_bitonic,"yellow",label="Bitonic Sort")
+plt.plot(elements,times_linear,"purple",label="Linear Sort")
+plt.plot(elements,times_merge,"green",label="Merge Sort")
+
+plt.legend()
+plt.show()
